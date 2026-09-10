@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Nebula Strike</title>
+<style>
+*{box-sizing:border-box}
+:root{--cyan:#43f7ff;--violet:#b86cff;--gold:#ffd45c;--red:#ff5575;--bg:#02050d}
+html,body{margin:0;width:100%;min-height:100%;background:var(--bg);color:#edfaff;font-family:Arial,Helvetica,sans-serif}
+body{overflow-x:hidden}.space{position:fixed;inset:0;background:radial-gradient(circle at 50% 0,#12213d 0,#050a15 38%,#01030a 100%);z-index:-2}
+.space:before,.space:after{content:"";position:absolute;inset:0;background-image:radial-gradient(#d8faff 1px,transparent 1px);background-size:73px 73px;opacity:.25;animation:stars 20s linear infinite}
+.space:after{background-size:131px 131px;opacity:.16;animation-duration:34s;animation-direction:reverse}
+@keyframes stars{to{transform:translateY(73px)}}
+.wrap{width:min(1150px,94vw);margin:auto;padding:25px 0}
+header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:16px}
+.title{display:flex;gap:12px;align-items:center}.title>span{font-size:31px;color:var(--cyan);text-shadow:0 0 22px var(--cyan)}
+h1{margin:0;font-size:clamp(22px,3vw,35px);letter-spacing:.11em}small{color:#6f8ba6;font-size:9px;letter-spacing:.25em}
+.stats{display:flex;gap:7px}.stats div{min-width:92px;padding:8px 12px;background:#071120dd;border:1px solid #1a3750;border-radius:9px;text-align:right}.stats label{display:block;color:#718aa3;font-size:8px;letter-spacing:.15em}.stats b{font-size:18px}
+.card{padding:10px;background:#050d18e8;border:1px solid #18344d;border-radius:17px;box-shadow:0 20px 70px #000}
+.bar{height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 5px}.health{display:flex;align-items:center;gap:9px;width:min(440px,60%);font-size:9px;letter-spacing:.15em;color:#89a2bb}.health>div{height:8px;flex:1;background:#111c29;border:1px solid #24384b;border-radius:8px;overflow:hidden}.health i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--red),#ff9e64);box-shadow:0 0 12px var(--red);transition:width .2s}.health b{color:#fff;min-width:35px}.bar>span{font-size:9px;letter-spacing:.14em;color:var(--cyan)}
+#arena{position:relative;height:min(69vh,690px);min-height:450px;border:1px solid #17364e;border-radius:11px;overflow:hidden;background:#01040a}
+canvas{width:100%;height:100%;display:block}.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:#01050dcc}.hidden{display:none!important}.bigIcon{font-size:53px;color:var(--cyan);text-shadow:0 0 30px var(--cyan);margin-bottom:5px}.red{color:var(--red);text-shadow:0 0 30px var(--red)}
+.overlay h2{font-size:clamp(27px,5vw,51px);letter-spacing:.1em;margin:3px 0 8px;text-shadow:0 0 20px #43f7ff55}.overlay p{color:#8198af;margin:0 0 19px}.overlay strong{font-size:48px;color:var(--cyan);margin:-8px 0 18px;text-shadow:0 0 20px #43f7ff99}
+button{font-weight:800;letter-spacing:.12em;color:#cfffff;cursor:pointer}.overlay button{padding:13px 28px;border:1px solid var(--cyan);border-radius:8px;background:#0a3041;box-shadow:0 0 25px #43f7ff22;transition:.15s}.overlay button:hover{transform:translateY(-2px);box-shadow:0 0 30px #43f7ff66}.overlay small{margin-top:15px}
+.controls{display:flex;align-items:center;justify-content:center;gap:18px;padding:11px 2px 2px;color:#7088a1;font-size:9px;letter-spacing:.1em}.controls kbd{padding:4px 7px;margin-right:3px;border:1px solid #29455e;border-radius:4px;background:#0a1522;color:#b9ccde}.small{background:#081521;border:1px solid #1d3a53;border-radius:6px;padding:7px 11px;font-size:8px;margin-left:auto}.small+.small{margin-left:-11px}.small:hover{border-color:var(--cyan)}
+.legend{display:flex;justify-content:center;gap:30px;padding:16px 0;color:#7189a0;font-size:9px}.legend b{color:#b6c8d8}
+.touch{display:none;position:absolute;left:12px;right:12px;bottom:12px;justify-content:space-between;gap:12px}.touch button{height:50px;width:70px;background:#07192acc;border:1px solid #28506c;border-radius:9px;color:#bffaff;touch-action:none}.touch #fire{width:110px;border-color:#72508f;color:#ead5ff}
+@media(max-width:700px){.wrap{padding:12px 0}.title small{display:none}.stats div{min-width:70px;padding:6px}.stats label{font-size:7px}.stats b{font-size:14px}#arena{height:70vh;min-height:500px}.touch{display:flex}.controls{gap:7px}.controls>span{display:none}.small{margin-left:0}.legend{gap:10px;justify-content:space-around;font-size:7px}.legend span{max-width:31%}}
+
+</style>
+</head>
+<body>
+<div class="space"></div>
+<div class="wrap">
+  <header>
+    <div class="title"><span>✦</span><div><h1>NEBULA STRIKE</h1><small>DEEP-SPACE DEFENSE</small></div></div>
+    <div class="stats">
+      <div><label>SCORE</label><b id="score">0</b></div>
+      <div><label>HIGH SCORE</label><b id="high">0</b></div>
+      <div><label>LEVEL</label><b id="level">1</b></div>
+    </div>
+  </header>
+
+  <section class="card">
+    <div class="bar">
+      <div class="health"><label>HULL</label><div><i id="hp"></i></div><b id="hpText">100%</b></div>
+      <span id="status">SYSTEMS NOMINAL</span>
+    </div>
+
+    <div id="arena">
+      <canvas id="game"></canvas>
+
+      <div class="overlay" id="start">
+        <div class="bigIcon">✦</div>
+        <h2>NEBULA STRIKE</h2>
+        <p>Survive the swarm. Protect the core.</p>
+        <button id="startBtn">START MISSION</button>
+        <small>ARROWS / A D = MOVE &nbsp; • &nbsp; SPACE = FIRE</small>
+      </div>
+
+      <div class="overlay hidden" id="pause">
+        <div class="bigIcon">Ⅱ</div><h2>MISSION PAUSED</h2>
+        <p>Your ship is safe for now.</p><button id="resumeBtn">RESUME</button>
+      </div>
+
+      <div class="overlay hidden" id="over">
+        <div class="bigIcon red">×</div><h2>SYSTEM FAILURE</h2>
+        <p>FINAL SCORE</p><strong id="final">0</strong><button id="againBtn">RESTART</button>
+      </div>
+
+      <div class="touch">
+        <button id="left">◀</button><button id="fire">✦ FIRE</button><button id="right">▶</button>
+      </div>
+    </div>
+
+    <div class="controls">
+      <span><kbd>A</kbd><kbd>←</kbd> MOVE</span><span><kbd>D</kbd><kbd>→</kbd> MOVE</span><span><kbd>SPACE</kbd> FIRE</span>
+      <button class="small" id="pauseBtn">PAUSE</button><button class="small" id="restartBtn">RESTART</button>
+    </div>
+  </section>
+
+  <div class="legend">
+    <span>⚡ <b>RAPID FIRE</b> — faster shots</span>
+    <span>◇ <b>SHIELD</b> — blocks one hit</span>
+    <span>2× <b>DOUBLE SCORE</b> — double points</span>
+  </div>
+</div>
+<script>
+const C=document.getElementById("game"),X=C.getContext("2d"),A=document.getElementById("arena");
+const scoreEl=document.getElementById("score"),highEl=document.getElementById("high"),levelEl=document.getElementById("level");
+const hpEl=document.getElementById("hp"),hpText=document.getElementById("hpText"),statusEl=document.getElementById("status");
+const start=document.getElementById("start"),pause=document.getElementById("pause"),over=document.getElementById("over"),finalEl=document.getElementById("final");
+let W=800,H=600,D=1,running=false,isPaused=false,last=0,spawn=0,shot=0,score=0,hp=100,level=1;
+let high=+localStorage.getItem("nebulaStrikeHigh")||0;
+let bullets=[],enemies=[],particles=[],drops=[],stars=[],keys={l:false,r:false,f:false};
+let ship={x:400,y:540,speed:430};let buffs={rapid:0,shield:0,double:0};
+highEl.textContent=high;
+
+function resize(){let r=A.getBoundingClientRect();D=Math.min(devicePixelRatio||1,2);W=r.width;H=r.height;C.width=W*D;C.height=H*D;X.setTransform(D,0,0,D,0,0);ship.y=H-52;ship.x=Math.max(28,Math.min(W-28,ship.x))}
+addEventListener("resize",resize);resize();
+function makeStars(){stars=Array.from({length:100},()=>({x:Math.random()*W,y:Math.random()*H,z:.5+Math.random()*1.7,v:15+Math.random()*45}))}makeStars();
+
+let AC=null;
+function sfx(t){try{AC=AC||(window.AudioContext||window.webkitAudioContext)&&new (window.AudioContext||window.webkitAudioContext)();if(!AC)return;let o=AC.createOscillator(),g=AC.createGain(),f={fire:520,boom:110,power:760,dead:70}[t]||400;o.type=t==="boom"?"sawtooth":"square";o.frequency.value=f;o.connect(g);g.connect(AC.destination);let n=AC.currentTime,d=t==="dead"?.45:.09;g.gain.setValueAtTime(.045,n);g.gain.exponentialRampToValueAtTime(.001,n+d);o.start(n);o.stop(n+d)}catch(e){}}
+
+function reset(){score=0;hp=100;level=1;bullets=[];enemies=[];particles=[];drops=[];buffs={rapid:0,shield:0,double:0};ship.x=W/2;updateUI()}
+function startGame(){reset();running=true;isPaused=false;start.classList.add("hidden");pause.classList.add("hidden");over.classList.add("hidden");last=performance.now();requestAnimationFrame(loop)}
+function endGame(){running=false;isPaused=false;finalEl.textContent=score.toLocaleString();over.classList.remove("hidden");sfx("dead");if(score>high){high=score;localStorage.setItem("nebulaStrikeHigh",high)}updateUI()}
+function togglePause(){if(!running)return;isPaused=!isPaused;pause.classList.toggle("hidden",!isPaused);if(!isPaused){last=performance.now();requestAnimationFrame(loop)}}
+function updateUI(){level=Math.floor(score/500)+1;scoreEl.textContent=score.toLocaleString();highEl.textContent=Math.max(high,score).toLocaleString();levelEl.textContent=level;hpEl.style.width=Math.max(0,hp)+"%";hpText.textContent=Math.ceil(hp)+"%";statusEl.textContent=buffs.rapid>0?"RAPID FIRE ACTIVE":buffs.shield>0?"SHIELD ACTIVE":buffs.double>0?"DOUBLE SCORE ACTIVE":"SYSTEMS NOMINAL"}
+
+function shoot(){let dx=buffs.rapid>0?[-8,8]:[0];dx.forEach(d=>bullets.push({x:ship.x+d,y:ship.y-24,w:4,h:16,v:650}));sfx("fire")}
+function enemy(){let q=Math.random(),type=q<.6?0:q<.88?1:2;let d=[{r:16,h:1,v:90+level*8,p:100,c:"#43f7ff"},{r:25,h:3,v:52+level*5,p:250,c:"#ff5575"},{r:20,h:2,v:125+level*9,p:180,c:"#b86cff"}][type];enemies.push({x:d.r+Math.random()*(W-d.r*2),y:-35,r:d.r,hp:d.h,max:d.h,v:d.v,p:d.p,c:d.c,t:type,phase:Math.random()*7})}
+function explode(x,y,c){for(let i=0;i<16;i++){let a=Math.random()*6.283,v=45+Math.random()*210;particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.35+Math.random()*.55,max:1,c,size:1+Math.random()*3})}}
+function drop(x,y){if(Math.random()>.14)return;let a=["rapid","shield","double"][Math.floor(Math.random()*3)];drops.push({x,y,type:a,r:12,v:70})}
+function hurt(){if(buffs.shield>0){buffs.shield=0;statusEl.textContent="SHIELD ABSORBED HIT";explode(ship.x,ship.y,"#b86cff");return}hp-=20;explode(ship.x,ship.y,"#ff5575");sfx("boom");if(hp<=0){hp=0;endGame()}}
+function collect(p){buffs[p.type]=8;explode(p.x,p.y,p.type==="shield"?"#b86cff":p.type==="double"?"#ffd45c":"#43f7ff");sfx("power")}
+
+function update(dt){
+if(keys.l)ship.x-=ship.speed*dt;if(keys.r)ship.x+=ship.speed*dt;ship.x=Math.max(25,Math.min(W-25,ship.x));
+buffs.rapid=Math.max(0,buffs.rapid-dt);buffs.shield=Math.max(0,buffs.shield-dt);buffs.double=Math.max(0,buffs.double-dt);
+shot-=dt;if(keys.f&&shot<=0){shoot();shot=buffs.rapid>0?.11:.25}
+spawn-=dt;if(spawn<=0){enemy();spawn=Math.max(.22,.72-level*.035)}
+bullets.forEach(b=>b.y-=b.v*dt);bullets=bullets.filter(b=>b.y>-30);
+for(let i=enemies.length-1;i>=0;i--){let e=enemies[i];e.y+=e.v*dt;if(e.t===2)e.x+=Math.sin(e.y*.018+e.phase)*35*dt;e.x=Math.max(e.r,Math.min(W-e.r,e.x));
+let dead=false;
+for(let j=bullets.length-1;j>=0;j--){let b=bullets[j];if(Math.hypot(e.x-b.x,e.y-b.y)<e.r+6){bullets.splice(j,1);e.hp--;explode(b.x,b.y,e.c);if(e.hp<=0){score+=Math.round(e.p*(buffs.double>0?2:1));explode(e.x,e.y,e.c);drop(e.x,e.y);dead=true;sfx("boom");break}}}
+if(dead){enemies.splice(i,1);continue}if(e.y>H+35){enemies.splice(i,1);hurt();if(!running)break}}
+for(let i=drops.length-1;i>=0;i--){let p=drops[i];p.y+=p.v*dt;if(Math.hypot(p.x-ship.x,p.y-ship.y)<28){collect(p);drops.splice(i,1)}else if(p.y>H+25)drops.splice(i,1)}
+particles.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.97;p.vy*=.97;p.life-=dt});particles=particles.filter(p=>p.life>0);
+stars.forEach(s=>{s.y+=s.v*dt;if(s.y>H)s.y=-3});updateUI()
+}
+
+function draw(){
+X.clearRect(0,0,W,H);let g=X.createRadialGradient(W/2,H*.7,5,W/2,H*.7,Math.max(W,H)*.8);g.addColorStop(0,"#08182d");g.addColorStop(1,"#01040a");X.fillStyle=g;X.fillRect(0,0,W,H);
+stars.forEach(s=>{X.globalAlpha=.25+s.z*.2;X.fillStyle="#dffcff";X.fillRect(s.x,s.y,s.z,s.z*2)});X.globalAlpha=1;
+bullets.forEach(b=>{X.fillStyle="#dfffff";X.shadowColor="#43f7ff";X.shadowBlur=15;X.fillRect(b.x-2,b.y,b.w,b.h)});X.shadowBlur=0;
+enemies.forEach(e=>{X.save();X.translate(e.x,e.y);X.strokeStyle=e.c;X.fillStyle=e.c+"22";X.lineWidth=2;X.shadowColor=e.c;X.shadowBlur=18;X.beginPath();if(e.t===0){X.moveTo(0,-e.r);X.lineTo(e.r,e.r);X.lineTo(0,e.r*.5);X.lineTo(-e.r,e.r)}else if(e.t===1){X.moveTo(0,-e.r);X.lineTo(e.r,e.r*.6);X.lineTo(0,e.r*.2);X.lineTo(-e.r,e.r*.6)}else{X.arc(0,0,e.r,0,6.283);X.moveTo(-e.r,0);X.lineTo(0,e.r);X.lineTo(e.r,0)}X.closePath();X.fill();X.stroke();X.restore();
+if(e.max>1){X.fillStyle="#142334";X.fillRect(e.x-e.r,e.y-e.r-9,e.r*2,3);X.fillStyle=e.c;X.fillRect(e.x-e.r,e.y-e.r-9,e.r*2*(e.hp/e.max),3)}})
+drops.forEach(p=>{let c=p.type==="rapid"?"#43f7ff":p.type==="shield"?"#b86cff":"#ffd45c";X.save();X.translate(p.x,p.y);X.shadowColor=c;X.shadowBlur=20;X.strokeStyle=c;X.strokeRect(-11,-11,22,22);X.fillStyle=c;X.font="bold 12px Arial";X.textAlign="center";X.textBaseline="middle";X.fillText(p.type==="rapid"?"⚡":p.type==="shield"?"◇":"2×",0,1);X.restore()});
+X.save();X.translate(ship.x,ship.y);X.shadowColor="#43f7ff";X.shadowBlur=25;X.strokeStyle="#43f7ff";X.fillStyle="#0b5168";X.beginPath();X.moveTo(0,-25);X.lineTo(20,17);X.lineTo(8,12);X.lineTo(0,22);X.lineTo(-8,12);X.lineTo(-20,17);X.closePath();X.fill();X.stroke();X.fillStyle="#dfffff";X.beginPath();X.arc(0,-7,5,0,6.283);X.fill();X.restore();
+if(buffs.shield>0){X.beginPath();X.arc(ship.x,ship.y,34,0,6.283);X.strokeStyle="#b86cff";X.shadowColor="#b86cff";X.shadowBlur=22;X.stroke()}
+particles.forEach(p=>{X.globalAlpha=Math.max(0,p.life/p.max);X.fillStyle=p.c;X.beginPath();X.arc(p.x,p.y,p.size,0,6.283);X.fill()});X.globalAlpha=1;X.shadowBlur=0
+}
+function loop(t){if(!running||isPaused)return;let dt=Math.min(.033,(t-last)/1000);last=t;update(dt);draw();requestAnimationFrame(loop)}
+function key(e,d){if(["ArrowLeft","ArrowRight","Space"].includes(e.code))e.preventDefault();if(e.code==="ArrowLeft"||e.code==="KeyA")keys.l=d;if(e.code==="ArrowRight"||e.code==="KeyD")keys.r=d;if(e.code==="Space")keys.f=d;if(d&&e.code==="KeyP")togglePause()}
+addEventListener("keydown",e=>key(e,true));addEventListener("keyup",e=>key(e,false));
+function hold(id,k){let z=document.getElementById(id);z.addEventListener("pointerdown",e=>{e.preventDefault();keys[k]=true});["pointerup","pointercancel","pointerleave"].forEach(v=>z.addEventListener(v,e=>{e.preventDefault();keys[k]=false}))}
+hold("left","l");hold("right","r");hold("fire","f");
+document.getElementById("startBtn").onclick=startGame;document.getElementById("againBtn").onclick=startGame;document.getElementById("restartBtn").onclick=startGame;document.getElementById("pauseBtn").onclick=togglePause;document.getElementById("resumeBtn").onclick=togglePause;
+draw();
+
+</script>
+</body>
+</html>
